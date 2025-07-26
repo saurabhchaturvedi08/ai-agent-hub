@@ -15,4 +15,5 @@ def create_vector_store(chunks, persist_path="faiss_index"):
 
 def load_vector_store(persist_path="faiss_index"):
     embeddings = get_embeddings()
-    return FAISS.load_local(persist_path, embeddings)
+    return FAISS.load_local(persist_path, embeddings, allow_dangerous_deserialization=True)
+

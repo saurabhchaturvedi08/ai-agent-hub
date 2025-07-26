@@ -1,6 +1,9 @@
 from langchain.chains.question_answering import load_qa_chain
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 QA_PROMPT_TEMPLATE = """
 Answer the question using the context below. Be detailed and accurate. If answer is not in the context, say:
@@ -16,7 +19,8 @@ Answer:
 """
 
 def get_chain():
-    model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3)
+    api_key = os.getenv("GOOGLE_API_KEY")
+    model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3, google_api_key=api_key)
     prompt = PromptTemplate(
         template=QA_PROMPT_TEMPLATE,
         input_variables=["context", "question"]
