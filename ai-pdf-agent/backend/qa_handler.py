@@ -1,14 +1,11 @@
 from langchain.chains.question_answering import load_qa_chain
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
-from dotenv import load_dotenv
-import os
-import google.generativeai as genai
-load_dotenv()
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+from langchain.memory import ConversationBufferMemory
 
 QA_PROMPT_TEMPLATE = """
-Answer the question using the context below. Be detailed and accurate. If answer is not in the context, say:
+Answer the question using the context below. Be detailed and accurate.
+If the answer is not in the context, respond with:
 "Answer not found in the provided context."
 
 Context:
@@ -20,16 +17,26 @@ Question:
 Answer:
 """
 
+# Shared memory for the session
+memory = ConversationBufferMemory(
+    memory_key="chat_history",
+    return_messages=True,
+    input_key="question"
+)
+
 def get_chain():
     model = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.3)
     prompt = PromptTemplate(
         template=QA_PROMPT_TEMPLATE,
         input_variables=["context", "question"]
     )
-    return load_qa_chain(model, chain_type="stuff", prompt=prompt)
+    return load_qa_chain(
+        llm=model,
+        chain_type="stuff",
+        prompt=prompt,
+        memory=memory
+    )
 
-def get_answer(vector_store, question, k=3):
-    docs = vector_store.similarity_search(question, k=k)
-    chain = get_chain()
-    result = chain({"input_documents": docs, "question": question}, return_only_outputs=True)
-    return result["output_text"]
+def get_fallback_answer(question):
+    model = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.3)
+    return model.invoke(question)
