@@ -2,11 +2,20 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
+from dotenv import load_dotenv
+import google.generativeai as genai
+import os
 
+# Load API key
+load_dotenv()
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+# 🔄 Smarter prompt that lets the model decide to add its own knowledge if needed
 QA_PROMPT_TEMPLATE = """
-Answer the question using the context below. Be detailed and accurate.
-If the answer is not in the context, respond with:
-"Answer not found in the provided context."
+You are a helpful AI assistant.
+
+Answer the question using the context provided below. If the context contains enough information, rely only on it.
+If the context is not sufficient or relevant, enhance your answer using your own general knowledge to be as helpful and accurate as possible.
 
 Context:
 {context}
@@ -17,13 +26,14 @@ Question:
 Answer:
 """
 
-# Shared memory for the session
+# Shared conversation memory
 memory = ConversationBufferMemory(
     memory_key="chat_history",
     return_messages=True,
     input_key="question"
 )
 
+# QA chain with fallback logic handled in prompt
 def get_chain():
     model = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.3)
     prompt = PromptTemplate(
@@ -37,6 +47,7 @@ def get_chain():
         memory=memory
     )
 
+# Optional: direct fallback model call if needed elsewhere
 def get_fallback_answer(question):
     model = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.3)
     return model.invoke(question)
