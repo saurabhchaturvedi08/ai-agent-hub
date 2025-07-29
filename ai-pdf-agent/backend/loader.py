@@ -2,12 +2,22 @@ from PyPDF2 import PdfReader
 
 def extract_text_from_pdfs(pdf_files):
     """
-    Accepts a list of file-like PDF objects and extracts their combined text.
+    Accepts a list of file-like PDF objects and extracts page-level text with metadata.
+    Returns a list of dicts: {"text": ..., "metadata": {"source": ..., "page": ...}}
     """
-    full_text = ""
+    documents = []
+
     for pdf in pdf_files:
         pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
+        file_name = getattr(pdf, "name", "Unknown")
+        for i, page in enumerate(pdf_reader.pages):
             text = page.extract_text() or ""
-            full_text += text
-    return full_text
+            documents.append({
+                "text": text,
+                "metadata": {
+                    "source": file_name,
+                    "page": i + 1
+                }
+            })
+
+    return documents

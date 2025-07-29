@@ -54,9 +54,9 @@ if uploaded_files and files_changed(uploaded_files):
 
         pdf_file_objs = [open(p, "rb") for p in file_paths]
         try:
-            raw_text = extract_text_from_pdfs(pdf_file_objs)
-            chunks = chunk_text(raw_text)
-            create_vector_store(chunks)  # saves to disk
+            raw_docs = extract_text_from_pdfs(pdf_file_objs)
+            chunks = chunk_text(raw_docs)
+            create_vector_store(chunks)
             st.session_state.vector_store = load_vector_store()
             st.success("✅ Documents processed and ready!")
         finally:
@@ -100,6 +100,11 @@ if question and st.session_state.vector_store:
                 placeholder.markdown(full_response + "▌")
                 time.sleep(0.03)
             placeholder.markdown(full_response)
+
+            # 🔍 Source highlighting
+            with st.expander("📄 Sources used"):
+                for doc in docs:
+                    st.markdown(f"🔹 **{doc.metadata.get('source', 'Unknown')}** - Page {doc.metadata.get('page', '?')}")
 
     st.session_state.chat_history.append(AIMessage(content=answer))
 
