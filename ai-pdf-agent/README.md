@@ -13,6 +13,7 @@
 - 📚 Document context-aware retrieval using LangChain + FAISS
 - 🔁 Persistent vector reuse (no reprocessing unless files change)
 - ✅ Streaming answers in top-to-bottom chat layout
+- 🔍 **Source highlighting**
 
 ---
 
